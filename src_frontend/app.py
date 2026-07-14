@@ -1,9 +1,14 @@
+import os
+from pathlib import Path
+
 from flask import Flask, redirect, render_template, request, session, url_for, flash
 
 import storage
 
-app = Flask(__name__)
+BASE_DIR = Path(__file__).resolve().parent
+app = Flask(__name__, template_folder=str(BASE_DIR / "templates"), static_folder=str(BASE_DIR / "static"))
 app.secret_key = "whoiswho-dev-secret"
+app.config["APPLICATION_ROOT"] = "/"
 
 DEFAULT_USER = {
     "first_name": "Ada",
