@@ -1,14 +1,14 @@
 from flask import abort, flash, redirect, render_template, session, url_for
 
-import config
-import storage
+from . import config
+from . import storage
 
 
 class MockProvider:
     """Local-dev-only stand-in for real SSO. Never used unless WHOISWHO_AUTH_MODE=mock."""
 
     def login_get(self):
-        return render_template("login.html")
+        return render_template("auth/login.html")
 
     def login_post(self, req):
         email = req.form.get("email", storage.DEFAULT_USER["email"])
@@ -30,7 +30,7 @@ class MockProvider:
         session["email"] = email
         session["user"] = storage.user_from_row(user_row)
         flash("Signed in successfully through SSO", "success")
-        return redirect(url_for("home"))
+        return redirect(url_for("profile.home"))
 
     def callback(self, req):
         abort(404)
@@ -117,14 +117,14 @@ class EntraProvider:
         session["email"] = email
         session["user"] = storage.user_from_row(user_row)
         flash("Signed in successfully through SSO", "success")
-        return redirect(url_for("home"))
+        return redirect(url_for("profile.home"))
 
     def logout_redirect_url(self):
         if not config.ENTRA_TENANT_ID:
             return None
         return (
             f"https://login.microsoftonline.com/{config.ENTRA_TENANT_ID}/oauth2/v2.0/logout"
-            f"?post_logout_redirect_uri={url_for('login', _external=True)}"
+            f"?post_logout_redirect_uri={url_for('auth.login', _external=True)}"
         )
 
 

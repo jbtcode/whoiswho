@@ -25,7 +25,8 @@
           <span class="badge bg-info-subtle text-info-emphasis">Active</span>
         </div>
 
-        <form method="post" action="{{ url_for('update_profile') }}" enctype="multipart/form-data">
+        <form method="post" action="{{ url_for('profile.update_profile') }}" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label">First name</label>

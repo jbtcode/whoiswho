@@ -9,7 +9,8 @@
             <h1 class="h3 fw-bold">Welcome to WhoIsWho</h1>
             <p class="text-muted">Secure sign-in with your company SSO</p>
           </div>
-          <form method="post" action="{{ url_for('login') }}">
+          <form method="post" action="{{ url_for('auth.login') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="mb-3">
               <label for="first_name" class="form-label">First name</label>
               <input type="text" class="form-control" id="first_name" name="first_name" value="Ada" required>
