@@ -3,22 +3,21 @@ from pathlib import Path
 
 from flask import Flask, redirect, render_template, request, session, url_for, flash
 
+import auth
+import config
 import storage
 
 BASE_DIR = Path(__file__).resolve().parent
 app = Flask(__name__, template_folder=str(BASE_DIR / "templates"), static_folder=str(BASE_DIR / "static"))
-app.secret_key = "whoiswho-dev-secret"
+
+if config.AUTH_MODE != "mock" and not config.SECRET_KEY:
+    raise RuntimeError(
+        "WHOISWHO_SECRET_KEY must be set when WHOISWHO_AUTH_MODE is not 'mock'."
+    )
+app.secret_key = config.SECRET_KEY
 app.config["APPLICATION_ROOT"] = "/"
 
-DEFAULT_USER = {
-    "first_name": "Ada",
-    "last_name": "Lovelace",
-    "email": "ada.lovelace@whoiswho.dev",
-    "address": "10 Downing Street, London",
-    "hobbies": "Reading, Hiking, Tech",
-    "role": "Product Designer",
-    "avatar": "AL",
-}
+DEFAULT_USER = storage.DEFAULT_USER
 
 DEFAULT_EMPLOYEES = [
     {"name": "Ada Lovelace", "role": "Product Designer", "department": "Design"},
@@ -29,14 +28,7 @@ DEFAULT_EMPLOYEES = [
 
 
 def _user_from_row(row):
-    return {
-        **DEFAULT_USER,
-        **row,
-        "first_name": row.get("first_name", DEFAULT_USER["first_name"]),
-        "last_name": row.get("last_name", DEFAULT_USER["last_name"]),
-        "email": row.get("email", DEFAULT_USER["email"]),
-        "avatar": row.get("avatar", f"{row.get('first_name', DEFAULT_USER['first_name'])[0].upper()}{row.get('last_name', DEFAULT_USER['last_name'])[0].upper()}"),
-    }
+    return storage.user_from_row(row)
 
 
 def _seed_demo_data():
@@ -91,27 +83,15 @@ def index():
 @app.get("/login")
 @app.post("/login")
 def login():
+    provider = auth.get_provider()
     if request.method == "POST":
-        email = request.form.get("email", DEFAULT_USER["email"])
-        user_row = {
-            "PartitionKey": "default",
-            "RowKey": email,
-            "first_name": request.form.get("first_name", DEFAULT_USER["first_name"]),
-            "last_name": request.form.get("last_name", DEFAULT_USER["last_name"]),
-            "email": email,
-            "address": "",
-            "hobbies": "",
-            "role": DEFAULT_USER["role"],
-            "avatar": f"{request.form.get('first_name', DEFAULT_USER['first_name'])[0].upper()}{request.form.get('last_name', DEFAULT_USER['last_name'])[0].upper()}",
-        }
-        storage.upsert_row("Users", user_row)
-        session["authenticated"] = True
-        session["email"] = email
-        session["user"] = _user_from_row(user_row)
-        flash("Signed in successfully through SSO", "success")
-        return redirect(url_for("home"))
+        return provider.login_post(request)
+    return provider.login_get()
 
-    return render_template("login.html")
+
+@app.get("/auth/callback")
+def auth_callback():
+    return auth.get_provider().callback(request)
 
 
 @app.get("/home")
@@ -163,7 +143,11 @@ def employees():
 
 @app.get("/logout")
 def logout():
+    provider = auth.get_provider()
+    redirect_url = provider.logout_redirect_url()
     session.clear()
+    if redirect_url:
+        return redirect(redirect_url)
     flash("You have been logged out", "info")
     return redirect(url_for("login"))
 

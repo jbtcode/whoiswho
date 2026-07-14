@@ -12,6 +12,27 @@ TABLE_FILES = {
     "Employees": DATA_DIR / "employees.json",
 }
 
+DEFAULT_USER = {
+    "first_name": "Ada",
+    "last_name": "Lovelace",
+    "email": "ada.lovelace@whoiswho.dev",
+    "address": "10 Downing Street, London",
+    "hobbies": "Reading, Hiking, Tech",
+    "role": "Product Designer",
+    "avatar": "AL",
+}
+
+
+def user_from_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        **DEFAULT_USER,
+        **row,
+        "first_name": row.get("first_name", DEFAULT_USER["first_name"]),
+        "last_name": row.get("last_name", DEFAULT_USER["last_name"]),
+        "email": row.get("email", DEFAULT_USER["email"]),
+        "avatar": row.get("avatar", f"{row.get('first_name', DEFAULT_USER['first_name'])[0].upper()}{row.get('last_name', DEFAULT_USER['last_name'])[0].upper()}"),
+    }
+
 
 def _read_json(path: Path) -> List[Dict[str, Any]]:
     if not path.exists():

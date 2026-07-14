@@ -4,10 +4,13 @@ import os
 
 def test_profile_update_is_persisted_to_json(tmp_path, monkeypatch):
     monkeypatch.setenv("WHOISWHO_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("WHOISWHO_AUTH_MODE", "mock")
 
+    import config
     import storage
     import app as app_module
 
+    config = importlib.reload(config)
     storage = importlib.reload(storage)
     app_module = importlib.reload(app_module)
 
