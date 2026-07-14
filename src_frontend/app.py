@@ -1,14 +1,21 @@
 import os
+import sys
 from pathlib import Path
 
-from flask import Flask, redirect, render_template, request, session, url_for, flash
-
-import storage
+from flask import Flask, redirect, render_template, request, session, url_for, flash, send_from_directory
 
 BASE_DIR = Path(__file__).resolve().parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
+import storage
+from avatar_storage import AvatarStorage
 app = Flask(__name__, template_folder=str(BASE_DIR / "templates"), static_folder=str(BASE_DIR / "static"))
 app.secret_key = "whoiswho-dev-secret"
 app.config["APPLICATION_ROOT"] = "/"
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
+app.config["UPLOAD_FOLDER"] = str(BASE_DIR / "data" / "avatars")
+avatar_storage = AvatarStorage()
 
 DEFAULT_USER = {
     "first_name": "Ada",
@@ -36,6 +43,7 @@ def _user_from_row(row):
         "last_name": row.get("last_name", DEFAULT_USER["last_name"]),
         "email": row.get("email", DEFAULT_USER["email"]),
         "avatar": row.get("avatar", f"{row.get('first_name', DEFAULT_USER['first_name'])[0].upper()}{row.get('last_name', DEFAULT_USER['last_name'])[0].upper()}"),
+        "avatar_path": row.get("avatar_path"),
     }
 
 
@@ -67,7 +75,16 @@ _seed_demo_data()
 
 def get_user():
     if "user" in session:
-        return session["user"]
+        user = session["user"]
+        email = user.get("email")
+        if email:
+            rows = storage.load_table("Users")
+            for row in rows:
+                if row.get("RowKey") == email:
+                    refreshed_user = _user_from_row(row)
+                    session["user"] = refreshed_user
+                    return refreshed_user
+        return user
 
     email = session.get("email")
     if email:
@@ -114,6 +131,11 @@ def login():
     return render_template("login.html")
 
 
+@app.get("/avatars/<path:filename>")
+def uploaded_file(filename: str):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+
 @app.get("/home")
 def home():
     if not session.get("authenticated"):
@@ -132,6 +154,11 @@ def update_profile():
 
     current_user = get_user()
     email = request.form.get("email", current_user["email"])
+    uploaded_file = request.files.get("profile_picture")
+    avatar_path = current_user.get("avatar_path")
+    if uploaded_file and uploaded_file.filename:
+        avatar_path = avatar_storage.save(uploaded_file, email)
+
     updated_user = {
         "PartitionKey": "default",
         "RowKey": email,
@@ -142,6 +169,7 @@ def update_profile():
         "email": email,
         "role": current_user.get("role", DEFAULT_USER["role"]),
         "avatar": f"{request.form.get('first_name', current_user['first_name'])[0].upper()}{request.form.get('last_name', current_user['last_name'])[0].upper()}",
+        "avatar_path": avatar_path,
     }
     storage.upsert_row("Users", updated_user)
     session["email"] = email
