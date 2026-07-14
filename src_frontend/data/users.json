@@ -5,9 +5,10 @@
     "first_name": "Ada",
     "last_name": "Lovelace",
     "email": "ada.lovelace@whoiswho.dev",
-    "address": "10 Downing Street, London",
-    "hobbies": "Reading, Hiking, Tech",
+    "address": "test",
+    "hobbies": "",
     "role": "Product Designer",
-    "avatar": "AL"
+    "avatar": "AL",
+    "avatar_path": "avatars/ada.lovelacewhoiswho.dev_avatar.png?v=1784052995"
   }
 ]

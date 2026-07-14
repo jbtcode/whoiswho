@@ -4,7 +4,11 @@
   <div class="row g-4">
     <div class="col-lg-4">
       <div class="card shadow-sm border-0 rounded-4 p-4 text-center">
-        <div class="avatar-circle mx-auto mb-3">{{ user.avatar }}</div>
+        {% if user.avatar_path %}
+          <img src="/{{ user.avatar_path }}" alt="Profile picture" class="mx-auto mb-3 rounded-circle border" style="width: 96px; height: 96px; object-fit: cover;">
+        {% else %}
+          <div class="avatar-circle mx-auto mb-3">{{ user.avatar }}</div>
+        {% endif %}
         <h2 class="h4 fw-bold mb-1">{{ user.first_name }} {{ user.last_name }}</h2>
         <p class="text-muted mb-3">{{ user.role }}</p>
         <p class="small text-muted">{{ user.email }}</p>
@@ -21,7 +25,7 @@
           <span class="badge bg-info-subtle text-info-emphasis">Active</span>
         </div>
 
-        <form method="post" action="{{ url_for('update_profile') }}">
+        <form method="post" action="{{ url_for('update_profile') }}" enctype="multipart/form-data">
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label">First name</label>
@@ -42,6 +46,15 @@
             <div class="col-12">
               <label class="form-label">Hobbies</label>
               <textarea class="form-control" rows="3" name="hobbies">{{ user.hobbies }}</textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Profile picture</label>
+              <input class="form-control" type="file" name="profile_picture" accept="image/*">
+              {% if user.avatar_path %}
+                <div class="mt-2">
+                  <img src="/{{ user.avatar_path }}" alt="Profile picture" class="img-thumbnail" style="max-height: 140px;">
+                </div>
+              {% endif %}
             </div>
           </div>
           <button class="btn btn-primary mt-4" type="submit">Save changes</button>

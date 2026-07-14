@@ -7,6 +7,9 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = Path(os.getenv("WHOISWHO_DATA_DIR", BASE_DIR / "data"))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
+if not DATA_DIR.exists():
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+
 TABLE_FILES = {
     "Users": DATA_DIR / "users.json",
     "Employees": DATA_DIR / "employees.json",
