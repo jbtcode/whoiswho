@@ -1,2 +1,5 @@
 .local/**
 .DS_Store
+
+// custom python package build info
+src/keypy.egg-info
