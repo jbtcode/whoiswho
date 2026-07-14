@@ -1,0 +1,30 @@
+[
+  {
+    "PartitionKey": "default",
+    "RowKey": "ada-lovelace",
+    "name": "Ada Lovelace",
+    "role": "Product Designer",
+    "department": "Design"
+  },
+  {
+    "PartitionKey": "default",
+    "RowKey": "grace-hopper",
+    "name": "Grace Hopper",
+    "role": "Engineering Lead",
+    "department": "Engineering"
+  },
+  {
+    "PartitionKey": "default",
+    "RowKey": "katherine-johnson",
+    "name": "Katherine Johnson",
+    "role": "Data Scientist",
+    "department": "Research"
+  },
+  {
+    "PartitionKey": "default",
+    "RowKey": "margaret-hamilton",
+    "name": "Margaret Hamilton",
+    "role": "Software Architect",
+    "department": "Product"
+  }
+]

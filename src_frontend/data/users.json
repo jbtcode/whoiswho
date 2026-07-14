@@ -1,0 +1,13 @@
+[
+  {
+    "PartitionKey": "default",
+    "RowKey": "ada.lovelace@whoiswho.dev",
+    "first_name": "Ada",
+    "last_name": "Lovelace",
+    "email": "ada.lovelace@whoiswho.dev",
+    "address": "10 Downing Street, London",
+    "hobbies": "Reading, Hiking, Tech",
+    "role": "Product Designer",
+    "avatar": "AL"
+  }
+]
