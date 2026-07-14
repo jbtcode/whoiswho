@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card game-hero game-card p-4 p-lg-5">
+        <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-start">
+          <div>
+            <span class="badge game-badge mb-3">Daily challenge</span>
+            <h2 class="fw-bold mb-2">Get to know your colleagues</h2>
+            <p class="mb-0 opacity-75">Explore quick facts, discover shared interests, and learn who sits where in the company.</p>
+          </div>
+          <div class="text-md-end">
+            <div class="fw-bold fs-4">{{ employees|length }} colleagues</div>
+            <div class="small opacity-75">Ready for a quick culture match</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card game-card p-4">
+        <h3 class="h5 fw-bold mb-3">How it works</h3>
+        <ul class="list-unstyled mb-0">
+          <li class="mb-2">• Pick a game mode below.</li>
+          <li class="mb-2">• Answer as many rounds as you can.</li>
+          <li>• Build a stronger connection before your next meeting.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card game-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h3 class="h5 fw-bold mb-1">Pick a game</h3>
+            <p class="text-muted mb-0">Sharpen how well you know your colleagues.</p>
+          </div>
+          <span class="badge bg-success-subtle text-success-emphasis">New this week</span>
+        </div>
+
+        <ul class="nav nav-pills game-mode-tabs mb-4" id="gameTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-photo-match" data-bs-toggle="pill" data-bs-target="#pane-photo-match" type="button" role="tab" aria-controls="pane-photo-match" aria-selected="true">🖼️ Photo Match</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-two-truths" data-bs-toggle="pill" data-bs-target="#pane-two-truths" type="button" role="tab" aria-controls="pane-two-truths" aria-selected="false">🤥 Two Truths &amp; a Lie</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-hobby-guess" data-bs-toggle="pill" data-bs-target="#pane-hobby-guess" type="button" role="tab" aria-controls="pane-hobby-guess" aria-selected="false">🎯 Hobby Guess</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-guess-department" data-bs-toggle="pill" data-bs-target="#pane-guess-department" type="button" role="tab" aria-controls="pane-guess-department" aria-selected="false">🧭 Guess the Department</button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="gameTabContent">
+          <div class="tab-pane fade show active" id="pane-photo-match" role="tabpanel" aria-labelledby="tab-photo-match">
+            <div class="game-mount" data-game="photo-match" id="game-photo-match">
+              <p class="game-placeholder">Coming soon.</p>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="pane-two-truths" role="tabpanel" aria-labelledby="tab-two-truths">
+            <div class="game-mount" data-game="two-truths" id="game-two-truths">
+              <p class="game-placeholder">Coming soon.</p>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="pane-hobby-guess" role="tabpanel" aria-labelledby="tab-hobby-guess">
+            <div class="game-mount" data-game="hobby-guess" id="game-hobby-guess">
+              <p class="game-placeholder">Coming soon.</p>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="pane-guess-department" role="tabpanel" aria-labelledby="tab-guess-department">
+            <div class="game-mount" data-game="guess-department" id="game-guess-department">
+              <p class="game-placeholder">Coming soon.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" id="employees-data">{{ employees|tojson }}</script>
+  <script type="module" src="{{ url_for('static', filename='js/games/main.js') }}"></script>
+{% endblock %}
