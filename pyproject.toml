@@ -1,5 +1,5 @@
 [project]
-name = "keypy"
+name = "whopy"
 version = "0.1.0"
 requires-python = ">=3.10"
 dependencies = [
@@ -21,4 +21,4 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["keypy*"]
+include = ["whopy*"]

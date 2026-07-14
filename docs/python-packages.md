@@ -10,8 +10,8 @@ when you need to add a module, a dependency, or a new custom python module.
 
 ## The idea in one sentence
 
-All Python code lives in **one installable package** (`src/keypy/`), which you
-install **once** in editable mode — after that, `from keypy.odoo import OdooExtractor`
+All Python code lives in **one installable package** (`src/whopy/`), which you
+install **once** in editable mode — after that, `from whopy.odoo import OdooExtractor`
 works from anywhere.
 
 No `sys.path.insert(...)`. No `Path(__file__).parents[2]`. No relative-path fragility.
@@ -30,7 +30,7 @@ repo/
 │       └── test.py
 │
 └── src/
-    ├── keypy/            # <- the ONLY Python package
+    ├── whopy/            # <- the ONLY Python package
     │   ├── __init__.py
     │   ├── base.py           # BaseExtractor ABC — the contract every extractor implements
     │   ├── core/             # shared code: exceptions, metadata, config, logging
@@ -49,7 +49,7 @@ repo/
 ```
 
 Key point: `src/` is a **polyglot folder**, not a Python package root. Only
-`src/keypy/` is Python. `src/db/` and `src/frontend/` have their own tooling
+`src/whopy/` is Python. `src/db/` and `src/frontend/` have their own tooling
 and their own manifests (`package.json`, etc.) and must **not** contain `__init__.py`.
 
 ---
@@ -70,13 +70,13 @@ file, and the change is live immediately. No reinstall needed.
 Verify:
 
 ```bash
-python -c "import keypy; print(keypy.__file__)"
+python -c "import whopy; print(whopy.__file__)"
 ```
 
 Now, from **any** script anywhere on your machine:
 
 ```python
-from keypy.odoo import OdooExtractor
+from whopy.odoo import OdooExtractor
 
 e = OdooExtractor(url="...", db="...")
 print(e.extract())
@@ -85,7 +85,7 @@ print(e.extract())
 > **The one rule:** your script must run under the venv. Either activate it in your
 > shell, or point your editor at `.venv/bin/python`
 > (VS Code: `Ctrl+Shift+P` → *Python: Select Interpreter*).
-> Almost every "ModuleNotFoundError: No module named 'keypy'" is a wrong-interpreter problem.
+> Almost every "ModuleNotFoundError: No module named 'whopy'" is a wrong-interpreter problem.
 
 ---
 
@@ -96,18 +96,18 @@ print(e.extract())
 Always use the full dotted path from the package root:
 
 ```python
-from keypy.odoo import OdooExtractor
-from keypy.core.exceptions import ExtractorError
+from whopy.odoo import OdooExtractor
+from whopy.core.exceptions import ExtractorError
 ```
 
 ### Between modules inside the package
 
-`src/keypy/odoo/odoo.py` can freely import from any sibling:
+`src/whopy/odoo/odoo.py` can freely import from any sibling:
 
 ```python
 # Absolute — preferred. Unambiguous, survives files being moved.
-from keypy.core.exceptions import AuthenticationError
-from keypy.base import BaseExtractor
+from whopy.core.exceptions import AuthenticationError
+from whopy.base import BaseExtractor
 ```
 
 Relative imports (`from ..core.exceptions import AuthenticationError`) resolve
@@ -124,14 +124,14 @@ required job is to mark the directory as a package.
 Beyond that it has one genuinely useful purpose: **flattening the public API.**
 
 ```python
-# src/keypy/odoo/__init__.py
+# src/whopy/odoo/__init__.py
 from .odoo import OdooExtractor
 
 __all__ = ["OdooExtractor"]
 ```
 
-This turns the stuttering `from keypy.odoo.odoo import OdooExtractor` into a
-clean `from keypy.odoo import OdooExtractor`. It also makes the internal file
+This turns the stuttering `from whopy.odoo.odoo import OdooExtractor` into a
+clean `from whopy.odoo import OdooExtractor`. It also makes the internal file
 layout an implementation detail — you can later split `odoo.py` into `client.py` +
 `models.py` and no caller notices.
 
@@ -139,10 +139,10 @@ layout an implementation detail — you can later split `odoo.py` into `client.p
 
 | File | Contents |
 |---|---|
-| `keypy/__init__.py` | Empty, or `__version__ = "0.1.0"` |
-| `keypy/odoo/__init__.py` | Re-export the one public class: `OdooExtractor` |
-| `keypy/sap/__init__.py` | Same pattern |
-| `keypy/core/__init__.py` | **Leave empty.** See below. |
+| `whopy/__init__.py` | Empty, or `__version__ = "0.1.0"` |
+| `whopy/odoo/__init__.py` | Re-export the one public class: `OdooExtractor` |
+| `whopy/sap/__init__.py` | Same pattern |
+| `whopy/core/__init__.py` | **Leave empty.** See below. |
 
 Why keep `core/__init__.py` empty? Because `core/` holds several *unrelated*
 concerns (exceptions, metadata, config, logging). Re-exporting them all into one
@@ -150,8 +150,8 @@ namespace invites collisions and hides where a name came from. Import by submodu
 instead — it's a few more characters and always unambiguous:
 
 ```python
-from keypy.core.exceptions import ExtractorError
-from keypy.core.metadata import load_schema
+from whopy.core.exceptions import ExtractorError
+from whopy.core.metadata import load_schema
 ```
 
 Re-exporting is best reserved for a subpackage with one obvious public thing
@@ -160,8 +160,8 @@ Re-exporting is best reserved for a subpackage with one obvious public thing
 ### Two things to avoid
 
 - **No heavy work in `__init__.py`.** No DB connections, no config file reads, no
-  expensive imports. It runs on *any* import of the package — `import keypy.sap`
-  would pay the cost of anything sitting in `keypy/__init__.py`.
+  expensive imports. It runs on *any* import of the package — `import whopy.sap`
+  would pay the cost of anything sitting in `whopy/__init__.py`.
 - **Watch for circular imports.** Keep `core/exceptions.py` and `base.py` as *leaf*
   modules that import nothing else from the package. Arrows point one way:
   `odoo → core`, never `core → odoo`.
@@ -174,7 +174,7 @@ A package is just a directory — put as many modules in it as you like. This is
 and costs nothing at runtime, since a module is only loaded when actually imported.
 
 ```
-src/keypy/core/
+src/whopy/core/
 ├── __init__.py
 ├── exceptions.py     # error classes
 ├── metadata.py       # metadata-driven integration
@@ -189,11 +189,11 @@ Modules within a subpackage may import each other — `metadata.py` will likely 
 
 ## Shared exceptions
 
-Because every keypy module will raise errors, they live in `core/`, not inside `odoo/`.
+Because every whopy module will raise errors, they live in `core/`, not inside `odoo/`.
 Give them a common base so callers can catch broadly or narrowly:
 
 ```python
-# src/keypy/core/exceptions.py
+# src/whopy/core/exceptions.py
 
 class ExtractorError(Exception):
     """Base for all extractor failures."""
@@ -206,7 +206,7 @@ class ExtractionFailed(ExtractorError): ...
 The payoff: a script can catch everything from any system with one clause.
 
 ```python
-from keypy.core.exceptions import ExtractorError
+from whopy.core.exceptions import ExtractorError
 
 try:
     data = e.extract()
@@ -218,10 +218,10 @@ except ExtractorError as err:      # catches Odoo, SAP, anything
 
 ## Adding a new extractor
 
-1. `mkdir src/keypy/<system>/` and add `__init__.py` + `<system>.py`.
-2. Subclass `BaseExtractor` from `keypy/base.py` — implement `connect()` and `extract()`.
+1. `mkdir src/whopy/<system>/` and add `__init__.py` + `<system>.py`.
+2. Subclass `BaseExtractor` from `whopy/base.py` — implement `connect()` and `extract()`.
 3. Re-export the class in `<system>/__init__.py`.
-4. Raise the shared exceptions from `keypy.core.exceptions`.
+4. Raise the shared exceptions from `whopy.core.exceptions`.
 
 No packaging changes. No import changes anywhere else. It just works.
 
@@ -234,7 +234,7 @@ No packaging changes. No import changes anywhere else. It just works.
 
 ```toml
 [project]
-name = "keypy"
+name = "whopy"
 version = "0.1.0"
 requires-python = ">=3.10"
 dependencies = [
@@ -259,14 +259,14 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["keypy*"]     # never wander into src/db or src/frontend
+include = ["whopy*"]     # never wander into src/db or src/frontend
 ```
 
 Install dev tooling with `pip install -e ".[dev]"`.
 
 ### Ranges, not hard pins
 
-Note `>=2.31,<3` rather than `==2.31.0`. `keypy` is a **library** — something
+Note `>=2.31,<3` rather than `==2.31.0`. `whopy` is a **library** — something
 other code imports. Hard `==` pins cause resolution conflicts the moment a consumer
 needs a slightly different version. Reproducibility for *deployments* comes from a
 **lockfile** (`pip freeze > requirements.lock`, or `uv lock`), not from the manifest.
@@ -280,7 +280,7 @@ it rather than shipping a loose file:
 
 ```toml
 [project.scripts]
-extract-odoo = "keypy.odoo.cli:main"
+extract-odoo = "whopy.odoo.cli:main"
 ```
 
 After `pip install -e .`, you simply type `extract-odoo` in the shell.
@@ -289,7 +289,7 @@ After `pip install -e .`, you simply type `extract-odoo` in the shell.
 
 ## Troubleshooting
 
-**`ModuleNotFoundError: No module named 'keypy'`**
+**`ModuleNotFoundError: No module named 'whopy'`**
 The venv isn't active, or your editor is pointing at the system Python.
 Check with `which python` — it should be inside `.venv/`.
 
@@ -302,7 +302,7 @@ nothing from the rest of the package.
 
 **setuptools complains about multiple top-level packages**
 A stray `.py` file appeared under `src/db/` or `src/frontend/`. The
-`include = ["keypy*"]` line should prevent this — confirm it's present.
+`include = ["whopy*"]` line should prevent this — confirm it's present.
 
 ---
 
