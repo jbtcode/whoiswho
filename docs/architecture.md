@@ -3,32 +3,39 @@
 ## component diagram
 
 ```text
-                                          ┌─────────────────────────────────┐
-                                          │         Source APIs             │
-                                          │  (Odoo, WHOZ, TeamTailor, ...)  │
-                                          └──────────────┬──────────────────┘
-                                                         │ extract
-                                                         ▼
- ┌──────────────┐   HTTP    ┌───────────┐  trigger  ┌────────────────┐
- │   Frontend   │──────────►│    BFF    │──────────►│ Import Service │
- │  (web app)   │◄──────────│    API    │           │  (internal)    │
- └──────┬───────┘           └─────┬─────┘           └───────┬────────┘
-        │                         │                          │
-        │ SSO auth                │ read/write               │ read/write raw files
-        ▼                         │ (personal data,          │ archive processed files
- ┌──────────────┐                 │  logs, profiles)         ▼
- │     SSO      │                 │                   ┌─────────────┐
- └──────────────┘                 │                   │    File     │
-                                  │                   │   Storage   │
-                                  │                   │(raw+archive)│
-                                  │                   └──────┬──────┘
-                                  │                          │ (no direct link)
-                                  ▼                          │
-                           ┌─────────────┐                   │
-                           │  Database   │◄──────────────────┘
-                           │             │  read current data, watermarks
-                           │             │  write changeset + logs
-                           └─────────────┘
+                                    ┌──────────────────────────────────────────────────────────────┐
+                                    │                   Import Service (internal)                   │
+                                    │                                                               │
+                                    │  ┌─────────────┐      ┌─────────────┐      ┌─────────────┐  │
+                                    │  │  Connector  │      │  Connector  │      │     ...     │  │
+                                    │  │    Odoo     │      │    WHOZ     │      │             │  │
+                                    │  └──────┬──────┘      └──────┬──────┘      └──────┬──────┘  │
+                                    └─────────┼─────────────────────┼─────────────────── ┼─────────┘
+                                              │ extract             │ extract             │ extract
+                                              ▼                     ▼                     ▼
+                                    ┌──────────────────────────────────────────────────────────────┐
+                                    │                        Source APIs                            │
+                                    │               (Odoo, WHOZ, TeamTailor, ...)                   │
+                                    └──────────────────────────────────────────────────────────────┘
+                                              │ write raw           │ write raw           │ write raw
+                                              ▼                     ▼                     ▼
+                                    ┌──────────────────────────────────────────────────────────────┐
+                                    │                   File Storage (raw + archive)                │
+                                    └──────────────────────────────────┬───────────────────────────┘
+                                                                       │ read raw / archive processed
+                                                                       ▼
+ ┌──────────────┐   HTTP    ┌───────────┐  trigger  ┌─────────────────────────────────────────────┐
+ │   Frontend   │──────────►│    BFF    │──────────►│                Import Service               │
+ │  (web app)   │◄──────────│    API    │           │                  (above)                    │
+ └──────┬───────┘           └─────┬─────┘           └─────────────────────┬───────────────────────┘
+        │                         │                                        │
+        │ SSO auth                │ read/write                             │ read current data, watermarks
+        ▼                         │ (personal data,                        │ write changeset + logs
+ ┌──────────────┐                 │  logs, profiles)                       │
+ │     SSO      │                 ▼                                        │
+ └──────────────┘          ┌─────────────┐                                 │
+                            │  Database   │◄────────────────────────────────┘
+                            └─────────────┘
 ```
 
 ## tech stack
@@ -74,6 +81,16 @@ each layer has a single responsibility and communicates only through defined int
 
 ### loose coupling
 components (database engine, BFF, frontend, importers) interact through contracts/interfaces, not concrete implementations. any component should be replaceable without requiring changes in the components that depend on it.
+
+### database access boundaries
+the BFF and the import service both access the database directly — each maintains its own database access layer. routing import writes through the BFF would couple a backend pipeline to a frontend-facing API, adding unnecessary network hops and forcing the BFF to expose endpoints that have nothing to do with serving the UI.
+
+the principle is: **the frontend never talks to the database directly**. backend components (import service) are not subject to this restriction.
+
+since the BFF (.NET) and import service (Python) cannot share a library, the database schema is the shared contract — each component implements its own access layer against the same schema independently.
+
+### internal data model
+the internal data model is defined as a **JSON schema** — a language-agnostic specification that describes the shape of profile data. it is the single source of truth shared across all components. each component (BFF, connectors, importers) builds its own private model layer to convert and interpret data according to this schema. no code is shared — only the specification.
 
 ### storage abstraction
 the application is decoupled from its storage technology. the BFF's data access layer is the only component that knows which database engine is in use — all other components are unaffected by a database swap. dependency injection is used in the BFF to bind the concrete database implementation, making it straightforward to switch engines (e.g. from Azure SQL to another provider) without touching business logic.
