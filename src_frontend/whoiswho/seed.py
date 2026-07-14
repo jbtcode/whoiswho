@@ -1,0 +1,99 @@
+from . import storage
+
+DEFAULT_EMPLOYEES = [
+    {
+        "name": "Ada Lovelace",
+        "role": "Product Designer",
+        "department": "Design",
+        "hobbies": [
+            {"label": "Sketching", "emoji": "✏️"},
+            {"label": "Puzzle games", "emoji": "🧩"},
+            {"label": "Poetry", "emoji": "📜"},
+        ],
+        "two_truths": {
+            "statements": [
+                "Sketches wireframes by hand before opening Figma.",
+                "Once designed a UI entirely using only sticky notes during a week-long outage.",
+                "Has never lost a game of chess.",
+            ],
+            "lie_index": 2,
+        },
+    },
+    {
+        "name": "Grace Hopper",
+        "role": "Engineering Lead",
+        "department": "Engineering",
+        "hobbies": [
+            {"label": "Sailing", "emoji": "⛵"},
+            {"label": "Vintage computers", "emoji": "🖥️"},
+            {"label": "Baking", "emoji": "🧁"},
+        ],
+        "two_truths": {
+            "statements": [
+                "Refuses to use semicolons in any language that requires them.",
+                "Keeps a jar of \"bugs\" on her desk labeled with real incident dates.",
+                "Taught herself six programming languages before turning 25.",
+            ],
+            "lie_index": 0,
+        },
+    },
+    {
+        "name": "Katherine Johnson",
+        "role": "Data Scientist",
+        "department": "Research",
+        "hobbies": [
+            {"label": "Astronomy", "emoji": "🔭"},
+            {"label": "Bridge (card game)", "emoji": "🃏"},
+            {"label": "Long-distance running", "emoji": "🏃"},
+        ],
+        "two_truths": {
+            "statements": [
+                "Has a favorite constellation she checks every clear night.",
+                "Has never once double-checked her own math.",
+                "Can do complex statistics in her head faster than most people reach for a calculator.",
+            ],
+            "lie_index": 1,
+        },
+    },
+    {
+        "name": "Margaret Hamilton",
+        "role": "Software Architect",
+        "department": "Product",
+        "hobbies": [
+            {"label": "Rock climbing", "emoji": "🧗"},
+            {"label": "Board games", "emoji": "🎲"},
+            {"label": "Journaling", "emoji": "📓"},
+        ],
+        "two_truths": {
+            "statements": [
+                "Printed out a stack of her own code taller than herself, just once, for fun.",
+                "Believes documentation is optional if the code is \"clean enough.\"",
+                "Designed a system so robust it's never thrown an unhandled exception in production.",
+            ],
+            "lie_index": 1,
+        },
+    },
+]
+
+
+def seed_demo_data():
+    storage.initialize_tables()
+    users = storage.load_table("Users")
+    if not users:
+        storage.upsert_row("Users", {
+            "PartitionKey": "default",
+            "RowKey": storage.DEFAULT_USER["email"],
+            **storage.DEFAULT_USER,
+        })
+
+    employees = storage.load_table("Employees")
+    if not employees:
+        for employee in DEFAULT_EMPLOYEES:
+            storage.upsert_row(
+                "Employees",
+                {
+                    "PartitionKey": "default",
+                    "RowKey": employee["name"].lower().replace(" ", "-"),
+                    **employee,
+                },
+            )

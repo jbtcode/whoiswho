@@ -1,0 +1,14 @@
+[
+  {
+    "PartitionKey": "default",
+    "RowKey": "ada.lovelace@whoiswho.dev",
+    "first_name": "Ada",
+    "last_name": "Lovelace",
+    "email": "ada.lovelace@whoiswho.dev",
+    "address": "",
+    "hobbies": "hobby horsing",
+    "role": "Product Designer",
+    "avatar": "AL",
+    "avatar_path": "avatars/ada.lovelacewhoiswho.dev_avatar.png?v=1784052995"
+  }
+]
