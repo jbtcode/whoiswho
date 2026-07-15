@@ -5,6 +5,7 @@
 we'll use a relational database (Azure SQL). the concrete engine is only known to the BFF data access layer — everything else is isolated from this choice via dependency injection.
 
 known considerations:
+
 * name/characteristic search will require either a separate search index (e.g. Azure Cognitive Search) or query-time filtering — plan for this as search scope grows beyond name
 * soundex/phonetic search is not supported natively in most relational databases — will need application-level handling or a dedicated search index
 
@@ -13,28 +14,28 @@ known considerations:
 ### from api
 
 ```text
- ┌────────────┐
- │ Source API │
- └─────┬──────┘
-       │
-       ▼
- ┌───────────┐
- │ Extractor │
- └─────┬─────┘
-       │
-       ▼
- ┌───────────┐
- │ Raw Files │
- └─────┬─────┘
-       │
-       ▼
- ┌──────────────────┐
- │     Importer     │◀─── current data ───┐
- │  (map + compare) │                     │
- └────────┬─────────┘                     │
+    ┌────────────┐
+    │ Source API │
+    └─────┬──────┘
+          │
+          ▼
+    ┌───────────┐
+    │ Extractor │
+    └─────┬─────┘
+          │
+          ▼
+    ┌───────────┐
+    │ Raw Files │
+    └─────┬─────┘
+          │
+          ▼
+ ┌──────────────────┐            ┌──────────────────┐
+ │     Importer     │◄───────────│  Internal Model  │
+ │  (map + compare) │            │  (current data)  │
+ └────────┬─────────┘            └────────┬─────────┘
           │ changed rows only             │
-          ▼                               │
- ┌──────────────────┐                     │
+          │                               │
+ ┌────────▼─────────┐                     │
  │  Internal Model  │              ┌──────┴──────┐
  │   (changeset)    │              │  Database   │
  └────────┬─────────┘              └──────▲──────┘
