@@ -45,7 +45,7 @@ Goal would be to get to know your colleagues a bit better via an application on 
 
 * Storage account and table storage
 * WebApplication: Azure Web App
-  * Keyrus SSO to link with account
+  * Company SSO to link with account
 * DevOps integration (git repository)
 * Integrations to existing tools (APIs)
   * WHOZ
@@ -53,6 +53,6 @@ Goal would be to get to know your colleagues a bit better via an application on 
   * Odoo
   * TeamTailor
       -> Watch out for fetched data
-      -> If hired, already prepare the profile (start data, name, Keyrus team, skills, etc.)
+      -> If hired, already prepare the profile (start date, name, team, skills, etc.)
   * Unit4
 
